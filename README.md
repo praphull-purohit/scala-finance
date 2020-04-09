@@ -10,6 +10,10 @@ Include the following dependency in `build.sbt`
 
 The library cross compiles to Scala 2.11, 2.12 and 2.13. Use `sbt +test` to run the tests.
 
+The functions can be accessed in various manners:
+* By importing package `com.praphull.finance` (see [XIRR](#xirr) for example)
+* By extending the trait `FinancialFunctions`in your own class/function library (see [XNPV](#xnpv) for example)
+
 To work with dates, a helper representation `DateRep` is provided, which can be constructed in the following manners:
 * `DateRep(year: Int, month: Int, date: Int)`
 * `DateRep(date: DateTime)` - From org.joda.time.DateTime ([Joda Time](https://www.joda.org/joda-time))
@@ -22,8 +26,8 @@ To work with dates, a helper representation `DateRep` is provided, which can be 
 ##### XIRR
 Usage:
 ```scala
-import finance.DateRep
-finance.xirr(List(
+import com.praphull.finance.{DateRep, _}
+xirr(List(
   DateRep(2008, 1, 1) -> -10000,
   DateRep(2008, 10, 30) -> 4250,
   DateRep(2008, 3, 1) -> 2750,
@@ -37,8 +41,13 @@ Microsoft Support - [XIRR](https://support.office.com/en-us/article/xirr-functio
 ##### XNPV
 Usage:
 ```scala
-import finance.DateRep
-finance.xnpv(List(
+import com.praphull.finance.{DateRep, FinancialFunctions}
+
+object MyLibrary extends FinancialFunctions {
+  def myOwnFunction = ???
+}
+
+MyLibrary.xnpv(List(
   DateRep(2008, 1, 1) -> -10000,
   DateRep(2008, 10, 30) -> 4250,
   DateRep(2008, 3, 1) -> 2750,

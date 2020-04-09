@@ -1,4 +1,4 @@
-package finance
+package com.praphull.finance
 
 import java.util.Date
 
