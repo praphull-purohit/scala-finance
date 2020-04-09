@@ -3,11 +3,12 @@ name := "scala-finance"
 description := "Financial function implementations in Scala"
 version := "0.0.1"
 
-scalaVersion := "2.13.1"
+scalaVersion := Versions.scala
+crossScalaVersions := Versions.crossCompileVersions
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % Versions.scalaTest,
-  "joda-time" % "joda-time" % "2.10.5" % Compile
+  "org.scalatest" %% "scalatest" % Versions.scalaTest % Test,
+  "joda-time" % "joda-time" % Versions.jodaTime % Compile
 )
 
 scalacOptions ++= Seq(

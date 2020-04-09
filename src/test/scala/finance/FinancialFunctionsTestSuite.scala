@@ -64,7 +64,6 @@ class FinancialFunctionsTestSuite extends AnyFunSuite with Matchers {
       DateRep(2009, 4, 1) -> 2750
     )
     val res = xnpv(values, 0.09)
-    println(res)
     val expected = 2086.6476020315
     round(res) shouldEqual round(expected)
   }

@@ -22,7 +22,7 @@ object DateRep {
 
   private class DateRepImpl(override val year: Int, override val month: Int, override val date: Int,
                             override val underlying: DateTime) extends DateRep {
-    override private[finance] lazy val asNumber = Days.daysBetween(epoch, underlying).getDays
+    override private[finance] lazy val asNumber = Days.daysBetween(epoch, underlying).getDays.toDouble
   }
 
   def apply(year: Int, month: Int, date: Int): DateRep = {
@@ -36,7 +36,7 @@ object DateRep {
 
   def apply(date: Date): DateRep = apply(date.getTime)
 
-  def apply(string: String): DateRep = apply(new DateTime(string))
+  def apply(string: String): DateRep = apply(DateTime.parse(string))
 
   implicit class Tuple3ToDateRep(val ymd: (Int, Int, Int)) {
     def toDateRep: DateRep = apply(ymd._1, ymd._2, ymd._3)
