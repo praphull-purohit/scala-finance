@@ -6,17 +6,18 @@ trait FinancialFunctions {
 
   private val maxDiff = 1E-10
   private val maxCounter = 100
+  private val zero = BigDecimal(0)
 
   //Performs validations for NPV and XIRR. Function f is of the following form:
   //startDate - first investment date, initialRate - Starting rate, remainingData - all investments except the first,
   //npv - a partial function from a given rate of return that can calculate NPV for the original dataset (values)
-  private def npvBase(values: List[(DateRep, Double)], initialRate: Double)
-                     (f: (Double, Double, List[(Double, Double)], Double => Double) => Double): Double = {
+  private def npvBase(values: List[(DateRep, BigDecimal)], initialRate: BigDecimal)
+                     (f: (Int, BigDecimal, List[(Int, BigDecimal)], BigDecimal => BigDecimal) => BigDecimal): BigDecimal = {
     val (startDate, seedAmount, remainingData) = values match {
       case (sr, sa) :: rest =>
         val sd = sr.asNumber
         val remaining = {
-          val init = (List.empty[(Double, Double)], sa < 0, sa > 0)
+          val init = (List.empty[(Int, BigDecimal)], sa < 0, sa > 0)
           val (res, hasNegatives, hasPositives) = rest.foldRight(init) { case ((dateRep, amount), (resultList, hasNegatives, hasPositives)) =>
             if (dateRep.asNumber < sd) throw new ValuePrecedeStartingDateException
             ((dateRep.asNumber, amount) :: resultList, hasNegatives || amount < 0, hasPositives || amount > 0)
@@ -31,9 +32,9 @@ trait FinancialFunctions {
       case Nil => throw new EmptyValuesException
     }
 
-    def calculateNPV(rate: Double): Double = {
+    def calculateNPV(rate: BigDecimal): BigDecimal = {
       remainingData.foldRight(seedAmount) { case ((d, p), total) =>
-        total + (p / Math.pow(1 + rate, (d - startDate) / 365))
+        total + (p / Math.pow(1 + rate.toDouble, (d - startDate).toDouble / 365))
       }
     }
 
@@ -47,7 +48,7 @@ trait FinancialFunctions {
    *               positive value representing withdrawal
    * @param guess  Estimated rate of return. If not provided, the estimation starts with 0.1 (a return rate of 10%)
    */
-  final def xirr(values: => List[(DateRep, Double)], guess: Option[Double] = None): Double = {
+  final def xirr(values: => List[(DateRep, BigDecimal)], guess: Option[BigDecimal] = None): BigDecimal = {
     npvBase(values, guess.getOrElse(0.1)) { case (startDate, initialRate, data, npv) =>
       /* Sums the derivatives against rate: https://www.derivative-calculator.net/#expr=a%2F%28x%5Ey%29
        * {{{
@@ -59,20 +60,20 @@ trait FinancialFunctions {
        * d/dx[a/(x^y)] = - p * b / ( (1 + r) ^ b )
        * }}}
        */
-      def sumDerivatives(rate: Double): Double = {
-        data.foldRight(0.0) { case ((d, p), total) =>
-          val diff = (d - startDate) / 365 //b
-          total - diff * p / Math.pow(1 + rate, diff + 1)
+      def sumDerivatives(rate: BigDecimal): BigDecimal = {
+        data.foldRight(zero) { case ((d, p), total) =>
+          val diff = (d - startDate).toDouble / 365 //b
+          total - (diff * (p / Math.pow((1 + rate).toDouble, diff + 1)))
         }
       }
 
       @scala.annotation.tailrec
-      def calculate(rate: Double, counter: Int): Double = {
+      def calculate(rate: BigDecimal, counter: Int): BigDecimal = {
         if (counter == maxCounter) throw new TooLongComputationException
         val res = npv(rate)
         val newRate = rate - (res / sumDerivatives(rate))
-        val diff = Math.abs(newRate - rate)
-        if (Math.abs(res) <= maxDiff && diff <= maxDiff) newRate else {
+        val diff = Math.abs((newRate - rate).toDouble)
+        if (Math.abs(res.toDouble) <= maxDiff && diff <= maxDiff) newRate else {
           calculate(newRate, counter + 1)
         }
       }
@@ -89,7 +90,7 @@ trait FinancialFunctions {
    *               positive value representing withdrawal
    * @param rate   Rate of return
    */
-  final def xnpv(values: List[(DateRep, Double)], rate: Double): Double = {
+  final def xnpv(values: List[(DateRep, BigDecimal)], rate: BigDecimal): BigDecimal = {
     npvBase(values, rate) { case (_, _, _, getNPV) =>
       getNPV(rate)
     }

@@ -7,12 +7,11 @@ class FinancialFunctionsTestSuite extends AnyFunSuite with Matchers {
 
   import FinancialFunctions._
 
-  private def round(d: => Double): BigDecimal =
-    BigDecimal(d).setScale(10, BigDecimal.RoundingMode.HALF_UP)
+  private def round(d: => BigDecimal): BigDecimal = d.setScale(10, BigDecimal.RoundingMode.HALF_UP)
 
-  private type XirrValues = (DateRep, Double)
+  private type XirrValues = (DateRep, BigDecimal)
 
-  test("must have at least one negative") {
+  test("must have at least one negative cash flow") {
     val values = List[XirrValues](
       DateRep(2008, 1, 1) -> 10000,
       DateRep(2008, 3, 1) -> 2750,
@@ -25,7 +24,7 @@ class FinancialFunctionsTestSuite extends AnyFunSuite with Matchers {
     }
   }
 
-  test("must have at least one positive") {
+  test("must have at least one positive cash flow") {
     val values = List[XirrValues](
       DateRep(2008, 1, 1) -> -10000,
       DateRep(2008, 3, 1) -> -2750
